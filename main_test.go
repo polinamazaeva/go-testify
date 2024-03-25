@@ -17,21 +17,15 @@ func TestMainHandlerWhenRequestIsCorrectAndResponseHasValue(t *testing.T) {
 	req := httptest.NewRequest("GET", "/cafe?count=4&city=moscow", nil)
 
 	responseRecorder := httptest.NewRecorder()
-	handler := http.HandlerFunc(mainHandle)
-	handler.ServeHTTP(responseRecorder, req)
+	http.HandlerFunc(mainHandle).ServeHTTP(responseRecorder, req)
 
-	status := responseRecorder.Code
-	body := responseRecorder.Body
-
-	require.Equal(t, http.StatusOK, status)
-	assert.NotEmpty(t, body)
+	require.Equal(t, http.StatusOK, responseRecorder.Code)
+	assert.NotEmpty(t, responseRecorder.Body)
 }
 
 // Город, который передаётся в параметре `city`, не поддерживается. Сервис возвращает код ответа 400 и ошибку `wrong city value` в теле ответа
 func TestMainHandlerWhenCityNotExist(t *testing.T) {
 	req := httptest.NewRequest("GET", "/cafe?count=4&city=nizhnynovgorod", nil)
-
-	var expectedValue string = "wrong city value"
 
 	responseRecorder := httptest.NewRecorder()
 	handler := http.HandlerFunc(mainHandle)
@@ -39,6 +33,8 @@ func TestMainHandlerWhenCityNotExist(t *testing.T) {
 
 	bodyStr := responseRecorder.Body.String()
 	status := responseRecorder.Code
+
+	expectedValue := "wrong city value"
 
 	require.Equal(t, http.StatusBadRequest, status)
 	assert.Equal(t, expectedValue, bodyStr)
@@ -56,6 +52,6 @@ func TestMainHandlerWhenCountMoreThanTotal(t *testing.T) {
 	body := responseRecorder.Body.String()
 	list := strings.Split(body, ",")
 
-	require.Equal(t, totalCount, len(list))
-
+	require.Equal(t, http.StatusOK, responseRecorder.Code)
+	assert.Equal(t, totalCount, len(list))
 }
